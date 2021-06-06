@@ -1,10 +1,12 @@
 from gensim.models.word2vec import KeyedVectors
 import numpy as np
+from utils import call_time_with_name
 
 # TODO 后续做成一个类,self.word2vec
 
 
 # word2vec
+@call_time_with_name('load_word2vec')
 def load_word2vec(path='../nlp_resource/Tencent_AILab_ChineseEmbedding/Tencent_AILab_ChineseEmbedding.txt'):
     word2vec = KeyedVectors.load_word2vec_format(path,
                                                  binary=False)
