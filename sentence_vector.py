@@ -19,9 +19,10 @@ def sentence_vector_by_word2vec(q):
     """
     word2vec = load_word2vec()  # TODO
     res = np.zeros(200)
-    num = len(q)
+    cnt = 0
     for w in q:
-        res += word2vec[w] if w in word2vec else np.zeros(200)
-    res /= num
+        res += word2vec[w] if w in word2vec else 0
+        cnt += 1
+    res /= cnt
     return res
 
