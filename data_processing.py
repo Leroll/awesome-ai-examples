@@ -6,9 +6,7 @@ import sys
 import torch
 import jieba
 
-
 from utils import *
-
 
 class DataProcessor:
     """
@@ -270,5 +268,3 @@ class DataProcessor:
             self.logger(res[i])
 
         return res
-
-data_processor = DataProcessor()
