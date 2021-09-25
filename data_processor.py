@@ -7,7 +7,7 @@ import torch
 import jieba
 
 
-from utils import time_cost
+from utils import *
 
 
 class DataProcessor:
@@ -15,8 +15,12 @@ class DataProcessor:
     从源文件读取数据到Dataloader过程中的各种工具函数.
     """
 
-    def __init__(self, logger=print):
+    def __init__(self, logger=print, vocab=None):
         self.logger = logger
+        self.vocab = vocab
+
+    def set_vocab(self, vocab:dict):
+        self.vocab = vocab
 
     ############################################
     # 文件读取
@@ -101,7 +105,6 @@ class DataProcessor:
         """
         单句处理
         """
-        global vocab_dict
 
         res = ''
         for i in text:
@@ -147,7 +150,10 @@ class DataProcessor:
                 continue
 
             # UNK
-            if i not in vocab_dict:
+            if self.vocab is None:
+                raise Exception('vocab is none, you need to set it before running this func')
+
+            if i not in self.vocab:
                 self.logger(text, '|', ord(i), '|', i)
                 i = '[UNK]'  # 这个UNK后面的 tokenizer可以处理
 
@@ -217,7 +223,8 @@ class DataProcessor:
         和对应的输出标签 labels
         为了利用tokenizer, labels也生成文字序列, 不预测的部分用[PAD]代替
         """
-        global vocab_dict
+        if self.vocab is None:
+            raise Exception('vocab is none, you need to set it before running this func')
 
         inputs = []
         labels = []
@@ -227,7 +234,7 @@ class DataProcessor:
         masked_tokens = random.sample(text, masked_num)
 
         for i in text:
-            if i not in vocab_dict:
+            if i not in self.vocab:
                 print(f'UNK | {text} | {ord(i)} | {i}')
 
             if i in masked_tokens:
