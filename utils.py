@@ -1,11 +1,11 @@
 from time import time
 
 def time_cost(func):
-    def wraps(*args, **kargs):
+    def Wrapper(*arg, **kargs):
         t0 = time()
-        result = func(*args, **kargs)
-        print(f'[{func.__name__}] cost time: {time() - t0:0.3f}s')
-        return result
-    return wraps
-
+        res = func(*arg, **kargs)
+        t1 = time()
+        print(f'[{func.__name__}] cost {t1 - t0:.2f}s')
+        return res
+    return Wrapper
 
