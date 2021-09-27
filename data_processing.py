@@ -8,6 +8,7 @@ import jieba
 
 from utils import *
 
+
 class DataProcessor:
     """
     从源文件读取数据到Dataloader过程中的各种工具函数.
@@ -23,7 +24,6 @@ class DataProcessor:
     ############################################
     # 文件读取
     ############################################
-
     @time_cost
     def read_data(self, mode, name, path, sep, encoder='utf-8', has_index=False):
         """
@@ -59,7 +59,8 @@ class DataProcessor:
             self.logger(data[i])
         return data
 
-    def _read_data_by_readline(self, path, sep, encoder='utf-8', has_index=False):
+    @staticmethod
+    def _read_data_by_readline(path, sep, encoder='utf-8', has_index=False):
         data = []
         with open(path, encoding=encoder) as f:
             line = f.readline()
@@ -83,12 +84,14 @@ class DataProcessor:
                     sys.exit()
         return data
 
-    def _read_data_by_pandas(self, path, sep, encoder='utf-8'):
+    @staticmethod
+    def _read_data_by_pandas(path, sep, encoder='utf-8'):
         data = pd.read_csv(path, sep=sep, encoding=encoder)
         data = data.to_numpy().tolist()
         return data
 
-    def create_dataloader(self, data, batch_size, is_shuffle, collate_fn):
+    @staticmethod
+    def create_dataloader(data, batch_size, is_shuffle, collate_fn):
         dataloader = torch.utils.data.DataLoader(data,
                                                  batch_size=batch_size,
                                                  shuffle=is_shuffle,
@@ -98,7 +101,6 @@ class DataProcessor:
     ############################################
     # preprocessing
     ############################################
-
     def preprocessing(self, text:str):
         """
         单句处理
@@ -165,15 +167,12 @@ class DataProcessor:
         """
         q1, q2, label = list(zip(*data))
         q1 = [self.preprocessing(q) for q in q1]
-        self.logger('q1 处理完毕')
         q2 = [self.preprocessing(q) for q in q2]
-        self.logger('q2 处理完毕')
-
         res = list(zip(q1, q2, label))
         return res
 
-
-    def word_segmentation(self, s: str):
+    @staticmethod
+    def word_segmentation(s: str):
         """
         分词
 
@@ -185,7 +184,6 @@ class DataProcessor:
     #################################################
     # multiprocessing
     #################################################
-
     @time_cost
     def multi(self, work_num, func, data):
         """
@@ -214,7 +212,6 @@ class DataProcessor:
     ##################################################
     # mask data
     ##################################################
-
     def get_masked_text(self, text):
         """
         生成masked后的输入inputs
