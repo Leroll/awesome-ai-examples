@@ -1,14 +1,14 @@
 from time import time
 
+
 def time_cost(func):
-    def Wrapper(*arg, **kargs):
+    def wrapper(*arg, **kargs):
         t0 = time()
         res = func(*arg, **kargs)
         t1 = time()
         print(f'[{func.__name__}] cost {t1 - t0:.2f}s')
         return res
-    return Wrapper
-
+    return wrapper
 
 def reverse_dict(x:dict):
     """
@@ -24,3 +24,21 @@ def reverse_dict(x:dict):
         return x_reverse
     else:
         raise TypeError('arg needs to be dict')
+
+
+class ModelConfig(dict):
+    """
+    config类
+    """
+    def __init__(self, name):
+        super().__init__()
+        self['name'] = name
+
+    def __getattr__(self, item):
+        if item in self:
+            return self[item]
+        else:
+            raise AttributeError(f'No such attribute: {item}')
+
+    def __setattr__(self, key, value):
+        self[key] = value
