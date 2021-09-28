@@ -77,14 +77,12 @@ class PretrainBasedModels(nn.Module):
 
         raise ValueError(f'The value of mean_mode must be one of the following:{supported}')
 
-    def save(self, path=None):
-        if path is None:
-            path = './' + self.name + '.model'
+    def save(self, prefix=''):
+        path = f'{prefix}_{self.name}.model'
         torch.save(self.state_dict(), path)
 
-    def load(self, path=None):
-        if path is None:
-            path = './' + self.name + '.model'
+    def load(self, prefix=''):
+        path = f'{prefix}_{self.name}.model'
         self.load_state_dict(torch.load(path))
 
 
@@ -129,10 +127,10 @@ class BertSim(PretrainBasedModels):
         super().__init__(**kwargs)
 
         supported_modes = ['cls', 'hidden_mean', 'hidden_mean_mask']
-        if mode in self.supported_modes:
+        if mode in supported_modes:
             self.mode = mode
         else:
-            raise ValueError(f'mode must be in: {self.supported_modes}')
+            raise ValueError(f'mode must be in: {supported_modes}')
 
         hidden_size = self.pretrain_model.config.hidden_size
         self.fine_tune = nn.Sequential(
@@ -199,7 +197,5 @@ class MlmBert(PretrainBasedModels):
 
         y_mask = torch.tensor(y_mask).to(self.device)
         return y_mask
-
-
 
 
