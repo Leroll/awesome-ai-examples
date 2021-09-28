@@ -1,8 +1,0 @@
-
-*.xml
-.idea/dictionaries
-*.iml
-*.pyc
-.ipynb_checkpoints/test-checkpoint.ipynb
-.ipynb_checkpoints/text_representation-checkpoint.ipynb
-.ipynb_checkpoints/word2vec-checkpoint.ipynb

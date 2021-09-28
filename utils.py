@@ -10,11 +10,10 @@ def time_cost(func):
         return res
     return wrapper
 
-def reverse_dict(x:dict):
-    """
-    交换字典的key-value
-    得到 value-key 的新字典
-    需保证 value 无重复项
+
+def reverse_dict(x: dict):
+    """交换字典的 key-value, 得到 value-key 的新字典
+    需保证value无重复项
     """
     if isinstance(x, dict):
         k, v = list(zip(*list(x.items())))
@@ -27,8 +26,7 @@ def reverse_dict(x:dict):
 
 
 class ModelConfig(dict):
-    """
-    config类
+    """config类
     """
     def __init__(self, name):
         super().__init__()
@@ -42,3 +40,26 @@ class ModelConfig(dict):
 
     def __setattr__(self, key, value):
         self[key] = value
+
+
+# 暂时把之前的一些废代码放在这
+from gensim.models.word2vec import KeyedVectors
+# word2vec
+def load_word2vec(path='../nlp_resource/Tencent_AILab_ChineseEmbedding/Tencent_AILab_ChineseEmbedding.txt'):
+    word2vec = KeyedVectors.load_word2vec_format(path,
+                                                 binary=False)
+    return word2vec
+
+
+def sentence_vector_by_word2vec(q):
+    """
+    average word2vec
+    """
+    word2vec = load_word2vec()  # TODO
+    res = np.zeros(200)
+    cnt = 0
+    for w in q:
+        res += word2vec[w] if w in word2vec else 0
+        cnt += 1
+    res /= cnt
+    return res
