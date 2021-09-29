@@ -13,18 +13,14 @@ class DataProcessor:
     """从源文件读取数据到Dataloader过程中的各种工具函数.
     """
 
-    def __init__(self, logger=print, vocab=None, tokenizer=None):
+    def __init__(self, tokenizer=None, logger=print):
         """
         args:
-            vocab: 来自tokenizer的字典
             tokenizer: 来自抱抱脸的tokenizer， mask的时候需要
         """
         self.logger = logger
-        self.vocab = vocab
         self.tokenizer = tokenizer
-
-    def set_vocab(self, vocab:dict):
-        self.vocab = vocab
+        self.vocab = self.tokenizer.vocab
 
     ############################################
     # 文件读取
