@@ -268,3 +268,19 @@ class DataProcessor:
             self.logger(res[i])
 
         return res
+
+    ##################################################
+    # split data
+    ##################################################
+    def split_data(self, data: list, dev_num: int):
+        """划分 train 和 dev 数据集
+        train_num = len(data) - dev_num
+        """
+        len_data = len(data)
+        dev_idx = random.sample(range(len_data), dev_num)
+        dev_hash_idx = {i: 0 for i in dev_idx}  # 单纯为了dict的hash性质，0无意义
+
+        dev = [data[i] for i in range(len_data) if i in dev_hash_idx]
+        train = [data[i] for i in range(len_data) if i not in dev_hash_idx]
+        self.logger(f'data:{len(data)}, train:{len(train)}, dev:{len(dev)}')
+        return train, dev
