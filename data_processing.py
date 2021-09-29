@@ -10,13 +10,18 @@ from utils import *
 
 
 class DataProcessor:
-    """
-    从源文件读取数据到Dataloader过程中的各种工具函数.
+    """从源文件读取数据到Dataloader过程中的各种工具函数.
     """
 
-    def __init__(self, logger=print, vocab=None):
+    def __init__(self, logger=print, vocab=None, tokenizer=None):
+        """
+        args:
+            vocab: 来自tokenizer的字典
+            tokenizer: 来自抱抱脸的tokenizer， mask的时候需要
+        """
         self.logger = logger
         self.vocab = vocab
+        self.tokenizer = tokenizer
 
     def set_vocab(self, vocab:dict):
         self.vocab = vocab
@@ -101,9 +106,12 @@ class DataProcessor:
     ############################################
     # preprocessing
     ############################################
-    def preprocessing(self, text:str):
-        """
-        单句处理
+    def preprocessing(self, text: str):
+        """单句处理
+
+        1. 字母小写化
+        2. 无意义字符删除
+        3. 近形字的改写
         """
 
         res = ''
@@ -137,7 +145,8 @@ class DataProcessor:
                 '冋': '回', '敉': '粒', '埭': '贷',
                 '仧': '卡', '頟': '额', '捿': '捷',
                 '鳓': '嘞', '䃼': '补', '囯': '国',
-                '吿': '告'
+                '吿': '告', '鞡': '粒', '疷': '底',
+                '歀': '款', '廯': '癣'
             }
             if i in char_correct:
                 i = char_correct[i]
@@ -145,6 +154,7 @@ class DataProcessor:
             # nonsense letter
             if i in [' ', ' ', '　', '　', ' ', ' ',
                      chr(8198), chr(65039), chr(8237), chr(8236),  # 一串打出来都是空格
+                     chr(8419),
                      '\u200d', '\x08', '', '',
                      '∨', '乛', '∵', chr(8198), ]:
                 continue
@@ -213,9 +223,7 @@ class DataProcessor:
     # mask data
     ##################################################
     def get_masked_text(self, text):
-        """
-        生成masked后的输入inputs
-        和对应的输出标签 labels
+        """生成masked后的输入inputs和对应的输出标签 labels
         为了利用tokenizer, labels也生成文字序列, 不预测的部分用[PAD]代替
         """
         if self.vocab is None:
@@ -224,16 +232,13 @@ class DataProcessor:
         inputs = []
         labels = []
 
+        text = self.tokenizer.tokenize(text)  # string 分离个tokens
         # 获取 masked tokens
         masked_num = max(1, round(len(text) * 0.15))
         masked_tokens = random.sample(text, masked_num)
 
         for i in text:
-            if i not in self.vocab:
-                print(f'UNK | {text} | {ord(i)} | {i}')
-
             if i in masked_tokens:
-                # preprocessing
                 r = np.random.random()
                 if r <= 0.8:
                     inputs.append('[MASK]')
@@ -245,11 +250,13 @@ class DataProcessor:
                     inputs.append(i)
                     labels.append(i)
                 masked_tokens.remove(i)
-
             else:
                 inputs.append(i)
                 labels.append('[PAD]')
 
+        # 转回字符串, 字符之间会多出空格，但是没关系tokenizer后续会忽略
+        inputs = self.tokenizer.convert_tokens_to_string(inputs)
+        labels = self.tokenizer.convert_tokens_to_string(labels)
         return [inputs, labels]
 
     def get_masked_data(self, data):

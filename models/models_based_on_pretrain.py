@@ -177,7 +177,7 @@ class MlmBert(PretrainBasedModels):
         self.final_part.final_embedding.weight.data = embedding_p
 
     def forward(self, x):
-        token = self.get_token_from_single(x, is_split_into_words=True)
+        token = self.get_token_from_single(x, is_split_into_words=False)
         x = self.pretrain_model(**token)[0]
         y_pre = self.final_part(x)
 
