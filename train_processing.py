@@ -41,14 +41,14 @@ class Trainer(object):
         args：
             batch
         return：
-            loss, y, y_pre
+            cur_loss, cur_acc
         """
         return self.cal_mask_loss(batch)
 
     def cal_mask_loss(self, batch):
         """masked langurage model 用来计算loss的函数
 
-        注意 y_pre.shape = [batch, vocab_len, sentence_len]
+        注意 y_pre.shape = [batch, vocab_len, sentence_len], 指 transpose 之后
         y = [batch, sentence_len]
         y_mask = [batch, sentence_len]
         """
@@ -61,7 +61,8 @@ class Trainer(object):
         # mask 掉不需要预测的
         # 更改了mask text的代码，不会出现nan的情况了,每句话必出现mask字符
         cur_loss = ((cur_loss * y_mask).sum(dim=-1) / y_mask.sum(dim=-1)).mean()
-        return cur_loss, y, y_pre
+        cur_acc = ((y_pre.argmax(dim=1) == y)*y_mask).sum()/(y_mask.sum()+1e-8)  # 预测对的字符数/mask的字符数
+        return cur_loss, cur_acc
 
     ##################################
     # training
@@ -73,7 +74,7 @@ class Trainer(object):
         loss, acc = 0, 0
         for batch in self.train:
             self.current_step += 1
-            cur_loss, y, y_pre = self.cal_loss(batch)
+            cur_loss, cur_acc = self.cal_loss(batch)
             # back propagation 三连
             self.optimizer.zero_grad()
             cur_loss.backward()
@@ -81,7 +82,7 @@ class Trainer(object):
 
             self._post_processing_per_step()  # 每步之后需要进行的操作
             loss += cur_loss
-            acc += (y_pre.argmax() == y).int().sum()/self.train.batch_size
+            acc += cur_acc
 
         loss /= len(self.train)
         acc /= len(self.train)
@@ -131,14 +132,12 @@ class Trainer(object):
         loss, acc = 0, 0
         with torch.no_grad():
             for batch in data_loader:
-                cur_loss, y, y_pre = self.cal_loss(batch)
+                cur_loss, cur_acc = self.cal_loss(batch)
                 loss += cur_loss
-                acc += (y_pre.argmax() == y).int().sum() / self.train.batch_size
-
-            loss /= len(self.train)
-            acc /= len(self.train)
+                acc += cur_acc
+            loss /= len(data_loader)
+            acc /= len(data_loader)
             self._log_loss_acc(name, loss, acc)
-
             return loss, acc
 
     def _post_processing_per_epoch(self):
