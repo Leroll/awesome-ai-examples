@@ -4,23 +4,17 @@ import random
 from multiprocessing import Pool
 import sys
 import torch
-import jieba
 
 from utils import *
 
 
 class DataProcessor:
-    """从源文件读取数据到Dataloader过程中的各种工具函数.
+    """ reader 和 一些相关函数.
+    形成初步的数据集
     """
 
-    def __init__(self, tokenizer=None, logger=print):
-        """
-        args:
-            tokenizer: 来自抱抱脸的tokenizer， mask的时候需要
-        """
+    def __init__(self, logger=print):
         self.logger = logger
-        self.tokenizer = tokenizer
-        self.vocab = self.tokenizer.vocab
 
     ############################################
     # 文件读取
@@ -61,7 +55,7 @@ class DataProcessor:
         return data
 
     @staticmethod
-    def _read_data_by_readline(path, sep, encoder='utf-8', has_index=False):
+    def _read_data_by_readline(path, sep, encoder='utf-8', has_index=False, has_label=True):
         data = []
         with open(path, encoding=encoder) as f:
             line = f.readline()
@@ -71,11 +65,18 @@ class DataProcessor:
                     line = line.strip()
                     line = line.replace('\ufeff', '')
 
-                    if has_index:
-                        idx, q1, q2, label = line.split(sep)
+                    if has_label:
+                        if has_index:
+                            idx, q1, q2, label = line.split(sep)
+                        else:
+                            q1, q2, label = line.split(sep)
+                        data.append([q1, q2, label])
                     else:
-                        q1, q2, label = line.split(sep)
-                    data.append([q1, q2, label])
+                        if has_index:
+                            idx, q1, q2 = line.split(sep)
+                        else:
+                            q1, q2 = line.split(sep)
+                        data.append([q1, q2])
 
                     line = f.readline()
                 except Exception as e:
@@ -99,15 +100,66 @@ class DataProcessor:
                                                  collate_fn=collate_fn)
         return dataloader
 
-    ############################################
-    # preprocessing
-    ############################################
+    #################################################
+    # multiprocessing
+    #################################################
+    @time_cost
+    def multi(self, work_num, func, data):
+        """
+        目前函数输入只有 data
+        """
+        per_lenght = len(data) // work_num
+
+        p = Pool()
+        p_res = []
+        for i in range(work_num):
+            begin = per_lenght * i
+            end = per_lenght * (i + 1) if i != (work_num - 1) else len(data)
+            p_res.append(p.apply_async(func, args=(data[begin:end],)))
+            self.logger(f'Process:{i} | [{begin}:{end}] ')
+        p.close()
+        p.join()
+
+        res = []
+        for i in range(work_num):
+            res.append(p_res[i].get())
+
+        # 拼装起来,外层循环得到单进程小res，内层循环得到j
+        res = [j for i in res for j in i]
+        return res
+
+    ##################################################
+    # split data
+    ##################################################
+    def split_data(self, data: list, dev_num: int):
+        """划分 train 和 dev 数据集
+        train_num = len(data) - dev_num
+        """
+        len_data = len(data)
+        dev_idx = random.sample(range(len_data), dev_num)
+        dev_hash_idx = {i: 0 for i in dev_idx}  # 单纯为了dict的hash性质，0无意义
+
+        dev = [data[i] for i in range(len_data) if i in dev_hash_idx]
+        train = [data[i] for i in range(len_data) if i not in dev_hash_idx]
+        self.logger(f'data:{len(data)}, train:{len(train)}, dev:{len(dev)}')
+        return train, dev
+
+
+class Preprocessor(object):
+    """数据预处理类
+    """
+    def __init__(self, vocab, logger=print):
+        self.vocab = vocab
+        self.unk_cnt = 0
+        self.logger = logger
+
     def preprocessing(self, text: str):
         """单句处理
 
         1. 字母小写化
         2. 无意义字符删除
         3. 近形字的改写
+        4. 发现 unk 并记录
         """
 
         res = ''
@@ -142,82 +194,69 @@ class DataProcessor:
                 '仧': '卡', '頟': '额', '捿': '捷',
                 '鳓': '嘞', '䃼': '补', '囯': '国',
                 '吿': '告', '鞡': '粒', '疷': '底',
-                '歀': '款', '廯': '癣'
+                '歀': '款', '廯': '癣', '仦': '小',
+                '佷': '很'
             }
             if i in char_correct:
                 i = char_correct[i]
 
             # nonsense letter
-            if i in [' ', ' ', '　', '　', ' ', ' ',
-                     chr(8198), chr(65039), chr(8237), chr(8236),  # 一串打出来都是空格
-                     chr(8419),
-                     '\u200d', '\x08', '', '',
-                     '∨', '乛', '∵', chr(8198), ]:
+            if i in [' ', ' ', '　', '　', ' ', ' ','\u200d',
+                     '\x08', '', '', '∨', '乛', '∵',
+                     chr(8198),chr(8236),chr(8237),chr(8419),
+                     chr(65039) ]:
                 continue
 
             # UNK
-            if self.vocab is None:
-                raise Exception('vocab is none, you need to set it before running this func')
-
             if i not in self.vocab:
-                self.logger(text, '|', ord(i), '|', i)
-                i = '[UNK]'  # 这个UNK后面的 tokenizer可以处理
+                self.logger(f'{self.unk_cnt:4d} | {text} | {ord(i):5d} | {i}')
+                self.unk_cnt += 1
 
             res += i
-
         return res
 
-    def preprocess_similarity_data(self, data):
+    def preprocess_similarity_data(self, data: list):
+        """预处理 pair 类数据
+
+        args:
+            data: 形如 [[q1,q2,label], ...]  # train & dev
+                  或者 [[q1,q2], ...]  # test
+        return:
+            与输入形式相同
         """
-        预处理形如 [[q1_1,q2_1,label_1], [q1_2,q2_2,label_2]] 的数据
-        """
-        q1, q2, label = list(zip(*data))
+        if len(data[0]) == 3:
+            q1, q2, label = list(zip(*data))
+        else:
+            q1, q2 = list(zip(*data))
+
+        self.unk_cnt = 0
         q1 = [self.preprocessing(q) for q in q1]
         q2 = [self.preprocessing(q) for q in q2]
-        res = list(zip(q1, q2, label))
+
+        if len(data[0]) == 3:
+            res = list(zip(q1, q2, label))
+        else:
+            res = list(zip(q1, q2))
         return res
 
-    @staticmethod
-    def word_segmentation(s: str):
+
+class Masker(object):
+    """mask 相关的数据处理类
+    用于从将初步的数据转换成与模型匹配的数据格式
+    """
+
+    def __init__(self, tokenizer, max_len, device, logger=print):
         """
-        分词
-
-        #TODO 后续加入 hanlp 分词对比
+        args:
+            tokenizer: 来自抱抱脸
         """
-        seg_s = jieba.lcut(s)
-        return seg_s
+        self.logger = logger
+        self.max_len = max_len
+        self.device = device
+        self.tokenizer = tokenizer
+        self.vocab = tokenizer.vocab
+        self.vocab_inverse = reverse_dict(self.vocab)
 
-    #################################################
-    # multiprocessing
-    #################################################
-    @time_cost
-    def multi(self, work_num, func, data):
-        """
-        目前函数输入只有 data
-        """
-        per_lenght = len(data) // work_num
-
-        p = Pool()
-        p_res = []
-        for i in range(work_num):
-            begin = per_lenght * i
-            end = per_lenght * (i + 1) if i != (work_num - 1) else len(data)
-            p_res.append(p.apply_async(func, args=(data[begin:end],)))
-            self.logger(f'Process:{i} | [{begin}:{end}] ')
-        p.close()
-        p.join()
-
-        res = []
-        for i in range(work_num):
-            res.append(p_res[i].get())
-
-        # 拼装起来,外层循环得到单进程小res，内层循环得到j
-        res = [j for i in res for j in i]
-        return res
-
-    ##################################################
-    # mask data
-    ##################################################
     def get_masked_text(self, text):
         """生成masked后的输入inputs和对应的输出标签 labels
         为了利用tokenizer, labels也生成文字序列, 不预测的部分用[PAD]代替
@@ -255,32 +294,90 @@ class DataProcessor:
         labels = self.tokenizer.convert_tokens_to_string(labels)
         return [inputs, labels]
 
-    def get_masked_data(self, data):
+    def get_masked_data(self, data: list):
         """
-        data = [q1,q2,q3,...]
-
-        return: [[input_1, label_1],[input_2, label_2],...]
+        args:
+            data = [q1,q2,q3,...]
+        return:
+            [[input_1, label_1],[input_2, label_2],...]
         """
         res = [self.get_masked_text(i) for i in data]
-
-        self.logger('Inputs & labels:')
-        for i in range(5):
-            self.logger(res[i])
-
         return res
 
-    ##################################################
-    # split data
-    ##################################################
-    def split_data(self, data: list, dev_num: int):
-        """划分 train 和 dev 数据集
-        train_num = len(data) - dev_num
-        """
-        len_data = len(data)
-        dev_idx = random.sample(range(len_data), dev_num)
-        dev_hash_idx = {i: 0 for i in dev_idx}  # 单纯为了dict的hash性质，0无意义
+    def get_token_from_pair(self, q1, q2, is_split_into_words=False):
+        tokens = self.tokenizer(text=q1,
+                                text_pair=q2,
+                                padding='longest',
+                                truncation=True,
+                                max_length=self.max_len,
+                                is_split_into_words=is_split_into_words,  # True:输入为str，False:切分好的list
+                                return_tensors='pt'
+                                ).to(self.device)
+        return tokens
 
-        dev = [data[i] for i in range(len_data) if i in dev_hash_idx]
-        train = [data[i] for i in range(len_data) if i not in dev_hash_idx]
-        self.logger(f'data:{len(data)}, train:{len(train)}, dev:{len(dev)}')
-        return train, dev
+    def get_y_mask(self, y):
+        """
+        like attention_mask, get y_mask from y_token
+        """
+        y_mask = []
+        for i in y:
+            temp_mask = []
+            for j in i:
+                m = 0 if j in [0, 101, 102] else 1
+                temp_mask.append(m)
+            y_mask.append(temp_mask)
+
+        y_mask = torch.tensor(y_mask).to(self.device)
+        return y_mask
+
+    def trans_to_pet_masked_data(self, batch: list):
+        """对原始的文本数据进行处理，得到处理好的id和label
+
+        train:
+            0. label的类别分别使用'是','否','[PAD]',来对应1，0和测试集的labels
+            1. 注意 mask 之后，其实有了两种不同的label，
+               a. mask_label，就是对应mask掉字符的label，在本程序里仍然是string
+               b. 原本的相似 label
+            2. 因为想要根据每个batch的最大长度来打padding，所以不能对全部数据处理完之后，再生成dataloader
+            3. 直接根据原始的数据集，生成dataloader，然后配合collate_fn在每次循环的时候处理
+            4. 由于mask也是在这里做的，所以就意味着, 每一次mask的结果都不一样，可以直接多次循环
+
+        test:
+            1. test阶段文本就不需要做新的label了，直接输入tokenize一下
+
+        args:
+            batch: [[q1,q2,label],[q1,q2,label],...]
+
+        return:
+            x: dict, 和tokenizer返回的一致
+                {'input_ids': , 'token_type_ids': , 'attention_mask':}
+            y: cls的值和那些mask掉的字符的id
+            y_mask: bool值的list，指示哪些字符用于计算loss
+        """
+        if len(batch[0]) == 3:  # training
+            q1, q2, label = list(zip(*batch))
+            # TODO, 对于mask的比例，先每句话都mask，后续要看看pet的原论文，里面具体mask的比例
+            q1_mask_res = self.get_masked_data(q1)
+            q1_mask, q1_mask_label = list(zip(*q1_mask_res))
+
+            q2_mask_res = self.get_masked_data(q2)
+            q2_mask, q2_mask_label = list(zip(*q2_mask_res))
+
+            x = self.get_token_from_pair(q1_mask, q2_mask)
+            y = self.get_token_from_pair(q1_mask_label, q2_mask_label)['input_ids']
+
+            # 更新 y 的 cls label
+            label_map = {
+                1: '是', 0: '否', -1: '[PAD]'
+            }
+            for idx, i in enumerate(label):
+                cls_id = self.vocab[label_map[i]]
+                y[idx][0] = cls_id
+
+            y_mask = self.get_y_mask(y)
+
+            return x, y, y_mask
+        else:
+            q1, q2 = list(zip(*batch))
+            x = self.get_token_from_pair(q1, q2)
+            return x
