@@ -6,8 +6,6 @@
 以下是相关文档介绍
 
 ## Models
-
----
 |model|备注|
 |---|---|
 |sentence bert fine-tune|实现sentence bert|
@@ -16,8 +14,6 @@
 |pattern exploiting training|pet的一个变体，苏建林同学 [这篇文章](https://kexue.fm/archives/8213) 的pytorch 实现。|
 
 ## Data processing
-
----
 |class|备注|
 |---|---|
 |Dataprocessor|reader 和 一些相关函数。形成初步的数据集|
@@ -27,6 +23,4 @@
 
 
 ## Train processing
-
----
 Trainer 在训练，测试过程中使用的一个类
