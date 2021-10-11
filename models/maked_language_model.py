@@ -1,30 +1,28 @@
 from collections import OrderedDict
-import torch
 from torch import nn
 
-class PetMaskedLanguageModel(nn.Module):
+
+class MaskedLanguageModel(nn.Module):
+    """mlm, pet_mlm 均可
+    """
     def __init__(self,
                  name: str,
                  device: str,
-                 tokenizer,
-                 pretrain_model,
-                 max_len: int,
-                 **kwargs):
+                 pretrain_model
+                 ):
         """
         args：
             name： 模型名字
             device： 'cpu' or 'cuda:0'
-            tokenizer: 与pretrain_model 匹配的 tokenizer
             pretrain_model: pretrain_model, 抱抱脸格式
-            max_len: tokenize 时句子最大长度
         """
         super().__init__()
         self.name = name
         self.device = device
-        self.tokenizer = tokenizer
         self.pretrain_model = pretrain_model
-        self.max_len = max_len
         self.final_part = self.__init_layers()
+
+        self.to(self.device)  # 需要放在最后，等所有weight都初始化后再更改device
 
     def __init_layers(self):
         hidden_size = self.pretrain_model.config.hidden_size
@@ -39,8 +37,13 @@ class PetMaskedLanguageModel(nn.Module):
         ]))
         return final_part
 
-    def forward(self, q1, q2):
-        tokens = self.get_tokens(q1, q2)
+    def forward(self, x):
+        """x为pair对tokenize 好之后的token_id
+        """
+        x = self.pretrain_model(**x)[0]  # hidden
+        y_pre = self.final_part(x)
+
+        return y_pre
 
 
 
