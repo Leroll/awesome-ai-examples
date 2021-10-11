@@ -108,13 +108,13 @@ class DataProcessor:
         """
         目前函数输入只有 data
         """
-        per_lenght = len(data) // work_num
+        per_length = len(data) // work_num
 
         p = Pool()
         p_res = []
         for i in range(work_num):
-            begin = per_lenght * i
-            end = per_lenght * (i + 1) if i != (work_num - 1) else len(data)
+            begin = per_length * i
+            end = per_length * (i + 1) if i != (work_num - 1) else len(data)
             p_res.append(p.apply_async(func, args=(data[begin:end],)))
             self.logger(f'Process:{i} | [{begin}:{end}] ')
         p.close()
@@ -201,10 +201,10 @@ class Preprocessor(object):
                 i = char_correct[i]
 
             # nonsense letter
-            if i in [' ', ' ', '　', '　', ' ', ' ','\u200d',
+            if i in [' ', ' ', '　', '　', ' ', ' ', '\u200d',
                      '\x08', '', '', '∨', '乛', '∵',
-                     chr(8198),chr(8236),chr(8237),chr(8419),
-                     chr(65039) ]:
+                     chr(8198), chr(8236), chr(8237), chr(8419),
+                     chr(65039)]:
                 continue
 
             # UNK
@@ -304,6 +304,16 @@ class Masker(object):
         res = [self.get_masked_text(i) for i in data]
         return res
 
+    def get_token_from_single(self, q, is_split_into_words=False):
+        tokens = self.tokenizer(text=q,
+                                padding='longest',
+                                truncation=True,
+                                max_length=self.max_len,
+                                is_split_into_words=is_split_into_words,  # True:输入为str，False:切分好的list
+                                return_tensors='pt'
+                                ).to(self.device)
+        return tokens
+
     def get_token_from_pair(self, q1, q2, is_split_into_words=False):
         tokens = self.tokenizer(text=q1,
                                 text_pair=q2,
@@ -329,6 +339,28 @@ class Masker(object):
 
         y_mask = torch.tensor(y_mask).to(self.device)
         return y_mask
+
+    def trans_to_masked_data(self, batch: list):
+        """把初步数据集转换为 masked 数据集
+
+        原始数据:
+            [q1,q2, ... ]
+
+        return:
+            x: dict, 和tokenizer返回的一致
+                {'input_ids': , 'token_type_ids': , 'attention_mask':}
+            y: mask label token id, 非mask 的token id 为 0，即 [PAD]对应的id
+            y_mask: bool值的list，指示哪些字符用于计算loss
+        """
+        q = batch
+        q_mask_res = self.get_masked_data(q)
+        q_mask_input, q_mask_label = list(zip(*q_mask_res))
+
+        x = self.get_token_from_single(q_mask_input, is_split_into_words=False)
+        y = self.get_token_from_single(q_mask_label, is_split_into_words=False)['input_ids']
+        y_mask = self.get_y_mask(y)
+
+        return x, y, y_mask
 
     def trans_to_pet_masked_data(self, batch: list):
         """对原始的文本数据进行处理，得到处理好的id和label
