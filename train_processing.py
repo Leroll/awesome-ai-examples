@@ -48,20 +48,19 @@ class Trainer(object):
     def cal_mask_loss(self, batch):
         """masked langurage model 用来计算loss的函数
 
+        同样可以用于pattern exploiting train。
         注意 y_pre.shape = [batch, vocab_len, sentence_len], 指 transpose 之后
         y = [batch, sentence_len]
         y_mask = [batch, sentence_len]
         """
-        x, label = batch
+        x, y, y_mask = batch
         y_pre = self.model(x).transpose(1, 2)  # transpose 是为了匹配后面的loss
-        y = self.model.get_token_from_single(label, is_split_into_words=True)['input_ids']
-        y_mask = self.model.get_y_mask(y)
 
         cur_loss = self.loss(y_pre, y)
         # mask 掉不需要预测的
         # 更改了mask text的代码，不会出现nan的情况了,每句话必出现mask字符
         cur_loss = ((cur_loss * y_mask).sum(dim=-1) / y_mask.sum(dim=-1)).mean()
-        cur_acc = ((y_pre.argmax(dim=1) == y)*y_mask).sum()/(y_mask.sum()+1e-8)  # 预测对的字符数/mask的字符数
+        cur_acc = ((y_pre.argmax(dim=1) == y) * y_mask).sum() / (y_mask.sum() + 1e-8)  # 预测对的字符数/mask的字符数
         return cur_loss, cur_acc
 
     ##################################
