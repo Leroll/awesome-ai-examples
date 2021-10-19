@@ -108,12 +108,12 @@ class Trainer(object):
             current_val_loss, current_val_acc = self.evaluate(self.val, 'val')
             if self.best_val_loss > current_val_loss:
                 self.best_val_loss = current_val_loss
-                self.model.save('best_val_loss')
+                torch.save(self.model.state_dict(), 'best_val_loss_model')
                 print('saved best val loss model')
 
             if self.best_val_acc < current_val_acc:
                 self.best_val_acc = current_val_acc
-                self.model.save('best_val_acc')
+                torch.save(self.model.state_dict(), 'best_val_acc_model')
                 print('saved best val acc model')
 
             self._post_processing_per_epoch()  # 每个epoch之后要做的事情
