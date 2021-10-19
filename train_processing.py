@@ -139,6 +139,37 @@ class Trainer(object):
             self._log_loss_acc(name, loss, acc)
             return loss, acc
 
+    def pet_similarity_evaluate(self, data_loader, name, yes_id, no_id):
+        """yes,no加mask的pet变体模型的 相似度准确率测试
+
+        这个与数据预处理时设置的具体字符有关
+        args:
+            yes_id: 具体的正例设置的token_id
+            no_id: 负例的
+        """
+        self.model.eval()  # 开启测试模式
+        assert not self.model.training
+
+        loss, acc = 0, 0
+        yes_no_index = torch.tensor([yes_id, no_id]).to(self.model.device)
+        for batch in data_loader:
+            x, y, y_mask = batch
+            y_pre = self.model(x)
+
+            pre = y_pre[:, 0, :].index_select(1, yes_no_index)  # shape=[batch_len, 2]
+            label = (y[:, 0] == yes_id).long()  # token_id 转换成 0，1 label
+
+            cur_loss = self.loss(pre, label).mean()  # loss之前设定为 reduction='none'
+            cur_acc = (pre.argmax(dim=1) == label).float().mean()
+
+            loss += cur_loss.tolist()  # TODO 有奇怪的内存泄漏的问题，tensor转换一下
+            acc += cur_acc.tolist()
+
+        loss /= len(data_loader)
+        acc /= len(data_loader)
+        self._log_loss_acc(name, loss, acc)
+        return loss, acc
+
     def _post_processing_per_epoch(self):
         pass
 
