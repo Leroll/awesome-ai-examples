@@ -170,6 +170,31 @@ class Trainer(object):
         self._log_loss_acc(name, loss, acc)
         return loss, acc
 
+    ################################
+    # predict
+    ###############################
+    def predict_pet_similarity(self, data_loader, name, yes_id, no_id):
+        """test loader 的label预测
+        """
+        self.model.eval()  # 开启测试模式
+        assert not self.model.training
+
+        no_yes_index = torch.tensor([no_id, yes_id]).to(self.model.device)  # 注意选择yes，no的顺序，影响acc的计算
+        q1, q2, pre = [], [], []
+        for batch in data_loader:
+            x, temp_q1, temp_q2 = batch
+            y_pre = self.model(x)
+
+            temp_pre = y_pre[:, 0, :].index_select(1, no_yes_index)  # shape=[batch_len, 2]
+            temp_pre = temp_pre.argmax(dim=1).tolist()
+
+            q1.extend(temp_q1)
+            q2.extend(temp_q2)
+            pre.extend(temp_pre)
+
+        res = list(zip(q1, q2, pre))
+        return res
+
     def _post_processing_per_epoch(self):
         pass
 

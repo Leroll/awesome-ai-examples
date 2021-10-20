@@ -411,4 +411,4 @@ class Masker(object):
         else:
             q1, q2 = list(zip(*batch))
             x = self.get_token_from_pair(q1, q2)
-            return x
+            return x, q1, q2  # 加上q1，q2是为了方便组装预测结果
