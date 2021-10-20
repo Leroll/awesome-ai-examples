@@ -151,12 +151,12 @@ class Trainer(object):
         assert not self.model.training
 
         loss, acc = 0, 0
-        yes_no_index = torch.tensor([yes_id, no_id]).to(self.model.device)
+        no_yes_index = torch.tensor([no_id, yes_id]).to(self.model.device)  # 注意选择yes，no的顺序，影响acc的计算
         for batch in data_loader:
             x, y, y_mask = batch
             y_pre = self.model(x)
 
-            pre = y_pre[:, 0, :].index_select(1, yes_no_index)  # shape=[batch_len, 2]
+            pre = y_pre[:, 0, :].index_select(1, no_yes_index)  # shape=[batch_len, 2]
             label = (y[:, 0] == yes_id).long()  # token_id 转换成 0，1 label
 
             cur_loss = self.loss(pre, label).mean()  # loss之前设定为 reduction='none'
