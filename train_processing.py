@@ -39,7 +39,7 @@ class Trainer(object):
         self.best_val_loss = attrs.get('best_val_loss', 0)
         self.best_val_acc = attrs.get('best_val_acc', 0)
         self.logger('finish set attrs')
-        
+
     ##################################
     # cal loss
     #################################
@@ -59,6 +59,17 @@ class Trainer(object):
             cur_loss, cur_acc
         """
         return self.cal_mask_loss(batch)
+
+    def cal_bert_sim_loss(self, batch):
+        """bert_sim 用于计算loss的函数
+        """
+        x, y = batch
+        y_pre = self.model(x)
+
+        cur_loss = self.loss(y_pre, y)
+        cur_acc = (y_pre.argmax(dim=1) == y).float().mean()
+
+        return cur_loss, cur_acc
 
     def cal_mask_loss(self, batch):
         """masked langurage model 用来计算loss的函数
@@ -132,6 +143,15 @@ class Trainer(object):
                 print('saved best val acc model')
 
             self._post_processing_per_epoch()  # 每个epoch之后要做的事情
+
+            # TODO 这里增加一个保存，每一个epoch训练完都把状态保存下来，
+            # 包括自己的写的一个字段， current-epoch 之类的
+            # 还包括 loss optimizer 这些
+            # 当然 也包括 model
+            # 这样子可以随时恢复断点
+            #
+            # 当然还有可能有时候会对代码更新，需要新建Trainer
+            # 就需要有一个功能是把当前trainer的状态可以全部复制给新的trainer
 
         t3 = time()
         print(f'total cost: {(t3 - t0) / 3600:0.2f}h')
