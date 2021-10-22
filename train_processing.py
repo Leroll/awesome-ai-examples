@@ -25,6 +25,21 @@ class Trainer(object):
     def _log_loss_acc(self, name, loss, acc):
         self.logger(f'{name:6s} | loss:{loss:0.4f} | acc:{acc:0.4f}')
 
+    def get_attr(self):
+        attr = {'current_epoch': self.current_epoch,
+                'current_step': self.current_step,
+                'best_val_loss': self.best_val_loss,
+                'best_val_acc': self.best_val_acc
+                }
+        return attr
+
+    def set_attr(self, attrs: dict):
+        self.current_epoch = attrs.get('current_epoch', 0)
+        self.current_step = attrs.get('current_step', 0)
+        self.best_val_loss = attrs.get('best_val_loss', 0)
+        self.best_val_acc = attrs.get('best_val_acc', 0)
+        self.logger('finish set attrs')
+        
     ##################################
     # cal loss
     #################################
