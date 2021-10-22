@@ -77,13 +77,13 @@ class BertSim(nn.Module):
         if self.mode == 'cls':
             q = self.pretrain_model(**inputs)[1]
         elif self.mode == 'hidden_mean':
-            q = self._through_bert_then_mean(inputs, 'mean')
+            q = self._through_bert_then_mean(inputs, 'hidden_mean')
         elif self.mode == 'hidden_mean_mask':
-            q = self._through_bert_then_mean(inputs, 'attention_mask')
+            q = self._through_bert_then_mean(inputs, 'hidden_mean_mask')
         else:
             raise ValueError('unexpected value of self.mode')
 
-        q = self.finetune(q)
+        q = self.fine_tune(q)
         return q
 
 
