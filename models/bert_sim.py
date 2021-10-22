@@ -44,7 +44,7 @@ class BertSim(nn.Module):
         )
         return fine_tune
 
-    def _through_bert_then_mean(self, inputs, mean_mode='attention_mask'):
+    def _through_bert_then_mean(self, inputs, mean_mode='hidden_mean_mask'):
         """
         through bert & get query representation
         hidden output mean
@@ -52,16 +52,17 @@ class BertSim(nn.Module):
         args:
             token :  tokenizer output, dict
             mean_mode:
-                'mean', 全部 hidden output 直接求 mean
-                'attention_mask', 去掉 padding 部分的影响，剩余的token进行mean
+                'hidden_mean', 全部 hidden output 直接求 mean
+                'hidden_mean_mask', 去掉 padding 部分的影响，剩余的token进行mean
         """
-        supported = ['mean', 'attention_mask']
+        supported = ['hidden_mean', 'hidden_mean_mask']
 
         q = self.pretrain_model(**inputs)[0]  # 0是hidden
-        if mean_mode == 'mean':
+        if mean_mode == 'hidden_mean':
             q = torch.mean(q, dim=1)
             return q
-        if mean_mode == 'attention_mask':
+
+        if mean_mode == 'hidden_mean_mask':
             attention_mask = torch.unsqueeze(inputs['attention_mask'], 2)
             q = (attention_mask * q).sum(1) / attention_mask.sum(1)
             return q
@@ -113,8 +114,8 @@ class TransSimData(object):
                                 ).to(self.device)
         return tokens
 
-    def trans_to_masked_data(self, batch: list):
-        """把初步数据集转换为 masked 数据集
+    def trans_data(self, batch: list):
+        """把初步数据集转换 model 接收的数据格式
 
         原始数据:
              [[q1_1, q2_1, label_1], ... ]
