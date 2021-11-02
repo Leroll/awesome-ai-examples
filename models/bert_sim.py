@@ -117,15 +117,22 @@ class TransSimData(object):
     def trans_data(self, batch: list):
         """把初步数据集转换 model 接收的数据格式
 
-        原始数据:
-             [[q1_1, q2_1, label_1], ... ]
+        初步数据：train or dev [[q1_1, q2_1, label_1], ... ]
+                test：[[q1_1, q2_1], ... ]
 
         return:
             x: dict, 和tokenizer返回的一致
                 {'input_ids': , 'token_type_ids': , 'attention_mask':}
         """
-        q1, q2, label = list(zip(*batch))
-        inputs = self.get_token_from_pair(q1, q2, is_split_into_words=False)
-        label = torch.tensor(label).to(self.device)
+        if len(batch[0]) == 3:
+            q1, q2, label = list(zip(*batch))
+            inputs = self.get_token_from_pair(q1, q2, is_split_into_words=False)
+            label = torch.tensor(label).to(self.device)
+            return inputs, label
+        else:
+            q1, q2 = list(zip(*batch))
+            inputs = self.get_token_from_pair(q1, q2, is_split_into_words=False)
+            return inputs, q1, q2
 
-        return inputs, label
+
+

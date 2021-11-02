@@ -230,6 +230,25 @@ class Trainer(object):
         res = list(zip(q1, q2, pre))
         return res
 
+    def predict_bert_sim(self, data_loader, name):
+        """bert sim model 里 test_loader 的 label 预测
+        """
+        self.model.eval()  # 开启测试模式
+        assert not self.model.training
+
+        q1, q2, pre = [], [], []
+        for batch in data_loader:
+            x, temp_q1, temp_q2 = batch
+            y_pre = self.model(x)
+            temp_pre = y_pre.argmax(dim=1).tolist()
+
+            q1.extend(temp_q1)
+            q2.extend(temp_q2)
+            pre.extend(temp_pre)
+
+        res = list(zip(q1, q2, pre))
+        return res
+
     def _post_processing_per_epoch(self):
         pass
 
