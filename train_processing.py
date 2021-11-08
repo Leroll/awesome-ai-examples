@@ -1,7 +1,9 @@
 import torch
 from torch import nn
+import torch.nn.functional as F
 import datetime
 from time import time
+
 
 
 class Trainer(object):
@@ -240,7 +242,9 @@ class Trainer(object):
         for batch in data_loader:
             x, temp_q1, temp_q2 = batch
             y_pre = self.model(x)
-            temp_prob = y_pre[1, :].tolist()
+
+            y_pre = F.softmax(y_pre, dim=1)
+            temp_prob = y_pre[:, 1].tolist()
             temp_pre = y_pre.argmax(dim=1).tolist()
 
             q1.extend(temp_q1)
