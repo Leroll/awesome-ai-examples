@@ -236,17 +236,19 @@ class Trainer(object):
         self.model.eval()  # 开启测试模式
         assert not self.model.training
 
-        q1, q2, pre = [], [], []
+        q1, q2, prob, pre = [], [], [], []
         for batch in data_loader:
             x, temp_q1, temp_q2 = batch
             y_pre = self.model(x)
+            temp_prob = y_pre[1, :].tolist()
             temp_pre = y_pre.argmax(dim=1).tolist()
 
             q1.extend(temp_q1)
             q2.extend(temp_q2)
+            prob.extend(temp_prob)
             pre.extend(temp_pre)
 
-        res = list(zip(q1, q2, pre))
+        res = list(zip(q1, q2, prob, pre))
         return res
 
     def _post_processing_per_epoch(self):
