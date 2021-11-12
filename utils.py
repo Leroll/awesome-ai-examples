@@ -87,24 +87,27 @@ def compare_pinyi(s1: str, s2: str):
     return s1_pinyin == s2_pinyin
 
 
-# 暂时把之前的一些废代码放在这
-# from gensim.models.word2vec import KeyedVectors
-# # word2vec
-# def load_word2vec(path='../nlp_resource/Tencent_AILab_ChineseEmbedding/Tencent_AILab_ChineseEmbedding.txt'):
-#     word2vec = KeyedVectors.load_word2vec_format(path,
-#                                                  binary=False)
-#     return word2vec
-#
-#
-# def sentence_vector_by_word2vec(q):
-#     """
-#     average word2vec
-#     """
-#     word2vec = load_word2vec()  # TODO
-#     res = np.zeros(200)
-#     cnt = 0
-#     for w in q:
-#         res += word2vec[w] if w in word2vec else 0
-#         cnt += 1
-#     res /= cnt
-#     return res
+# TODO 腾讯word vector， 后续考虑放到别的地方
+from gensim.models.word2vec import KeyedVectors
+
+
+def load_word2vec(path=None):
+    if path is None:
+        path = '../nlp_resource/Tencent_AILab_ChineseEmbedding/Tencent_AILab_ChineseEmbedding.txt'
+    word2vec = KeyedVectors.load_word2vec_format(path,
+                                                 binary=False)
+    return word2vec
+
+
+def sentence_vector_by_word2vec(q):
+    """
+    average word2vec
+    """
+    word2vec = load_word2vec()  # TODO
+    res = np.zeros(200)
+    cnt = 0
+    for w in q:
+        res += word2vec[w] if w in word2vec else 0
+        cnt += 1
+    res /= cnt
+    return res
