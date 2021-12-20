@@ -1,20 +1,37 @@
 import torch
 from torch import nn
 
-from pretrain_train_base_model import PretrainBasedModels
-
-class SentenceBert(PretrainBasedModels):
+class SentenceBert(nn.Module):
     """
     args:
         pretrain_model: 需要是bert
     """
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
 
+    def __init__(self,
+                 name: str,
+                 device: str,
+                 pretrain_model):
+
+        super().__init__()
+        self.name = name
+        self.device = device
+        self.pretrain_model = pretrain_model
+
+        self.final_layer = self.__init_final_layer()
+
+    def __init_final_layer(self):
         hidden_size = self.pretrain_model.config.hidden_size
-        self.linear = nn.Linear(hidden_size * 3, 2)
+        final_layer = nn.Linear(hidden_size * 3, 2)
+        return final_layer
 
-    def forward(self, q1, q2):
+    def forward(self, inputs):
+        """
+        args:
+            inputs: tokenizer之后的字典
+
+        ## TODO 原始的输入里面还家了q1， q2，这个部分需要放到transdata里面去
+        """
+
         q = []
         for temp_q in [q1, q2]:
             temp_q = self.get_token_from_single(temp_q, is_split_into_words=False)
