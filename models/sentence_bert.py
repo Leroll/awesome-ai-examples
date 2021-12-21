@@ -30,6 +30,7 @@ class SentenceBert(nn.Module):
             inputs: tokenizer之后的字典
 
         ## TODO 原始的输入里面还家了q1， q2，这个部分需要放到transdata里面去
+        ## test
         """
 
         q = []
