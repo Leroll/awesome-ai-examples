@@ -15,9 +15,6 @@ class DataProcessor:
     def __init__(self, logger=print):
         self.logger = logger
 
-    ############################################
-    # 文件读取
-    ############################################
     @time_cost
     def read_data(self, mode, name, path, sep, encoder='utf-8', has_index=False):
         """
@@ -99,9 +96,6 @@ class DataProcessor:
                                                  collate_fn=collate_fn)
         return dataloader
 
-    #################################################
-    # multiprocessing
-    #################################################
     @time_cost
     def multi(self, work_num, func, data):
         """
@@ -127,9 +121,6 @@ class DataProcessor:
         res = [j for i in res for j in i]
         return res
 
-    ##################################################
-    # split data
-    ##################################################
     def split_data(self, data: list, dev_num: int):
         """划分 train 和 dev 数据集
         train_num = len(data) - dev_num
