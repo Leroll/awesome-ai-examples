@@ -1,9 +1,7 @@
 import torch
-from torch import nn
 import torch.nn.functional as F
 import datetime
 from time import time
-
 
 
 class Trainer(object):
@@ -42,9 +40,6 @@ class Trainer(object):
         self.best_val_acc = attrs.get('best_val_acc', 0)
         self.logger('finish set attrs')
 
-    ##################################
-    # cal loss
-    #################################
     def set_cal_loss(self, func):
         """设定当前计算loss的函数
         """
@@ -87,8 +82,10 @@ class Trainer(object):
         cur_loss = self.loss(y_pre, y)
         # mask 掉不需要预测的
         # 更改了mask text的代码，不会出现nan的情况了,每句话必出现mask字符
-        cur_loss = ((cur_loss * y_mask).sum(dim=-1) / y_mask.sum(dim=-1)).mean()
-        cur_acc = ((y_pre.argmax(dim=1) == y) * y_mask).sum() / (y_mask.sum() + 1e-8)  # 预测对的字符数/mask的字符数
+        cur_loss = ((cur_loss * y_mask).sum(dim=-1) /
+                    y_mask.sum(dim=-1)).mean()
+        cur_acc = ((y_pre.argmax(dim=1) == y) * y_mask).sum() / \
+                  (y_mask.sum() + 1e-8)  # 预测对的字符数/mask的字符数
         return cur_loss, cur_acc
 
     ##################################
@@ -188,15 +185,19 @@ class Trainer(object):
         assert not self.model.training
 
         loss, acc = 0, 0
-        no_yes_index = torch.tensor([no_id, yes_id]).to(self.model.device)  # 注意选择yes，no的顺序，影响acc的计算
+
+        # 注意选择yes，no的顺序，影响acc的计算
+        no_yes_index = torch.tensor([no_id, yes_id]).to(self.model.device)
         for batch in data_loader:
             x, y, y_mask = batch
             y_pre = self.model(x)
 
-            pre = y_pre[:, 0, :].index_select(1, no_yes_index)  # shape=[batch_len, 2]
+            # shape=[batch_len, 2]
+            pre = y_pre[:, 0, :].index_select(1, no_yes_index)
             label = (y[:, 0] == yes_id).long()  # token_id 转换成 0，1 label
 
-            cur_loss = self.loss(pre, label).mean()  # loss之前设定为 reduction='none'
+            # loss之前设定为 reduction='none'
+            cur_loss = self.loss(pre, label).mean()
             cur_acc = (pre.argmax(dim=1) == label).float().mean()
 
             loss += cur_loss.tolist()  # TODO 有奇怪的内存泄漏的问题，tensor转换一下
@@ -216,13 +217,15 @@ class Trainer(object):
         self.model.eval()  # 开启测试模式
         assert not self.model.training
 
-        no_yes_index = torch.tensor([no_id, yes_id]).to(self.model.device)  # 注意选择yes，no的顺序，影响acc的计算
+        # 注意选择yes，no的顺序，影响acc的计算
+        no_yes_index = torch.tensor([no_id, yes_id]).to(self.model.device)
         q1, q2, pre = [], [], []
         for batch in data_loader:
             x, temp_q1, temp_q2 = batch
             y_pre = self.model(x)
 
-            temp_pre = y_pre[:, 0, :].index_select(1, no_yes_index)  # shape=[batch_len, 2]
+            # shape=[batch_len, 2]
+            temp_pre = y_pre[:, 0, :].index_select(1, no_yes_index)
             temp_pre = temp_pre.argmax(dim=1).tolist()
 
             q1.extend(temp_q1)

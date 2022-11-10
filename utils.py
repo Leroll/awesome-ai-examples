@@ -5,6 +5,7 @@ import numpy as np
 import os
 from pypinyin import lazy_pinyin
 import jieba
+from gensim.models.word2vec import KeyedVectors
 
 
 def time_cost(func):
@@ -87,13 +88,12 @@ def compare_pinyi(s1: str, s2: str):
     return s1_pinyin == s2_pinyin
 
 
-# TODO 腾讯word vector， 后续考虑放到别的地方
-from gensim.models.word2vec import KeyedVectors
-
-
+# -----------------------------------
+# TODO 下面是腾讯的word vector， 后续考虑放到别的地方
 def load_word2vec(path=None):
     if path is None:
-        path = '../nlp_resource/Tencent_AILab_ChineseEmbedding/Tencent_AILab_ChineseEmbedding.txt'
+        path = '../nlp_resource/Tencent_AILab_ChineseEmbedding/\
+                Tencent_AILab_ChineseEmbedding.txt'
     word2vec = KeyedVectors.load_word2vec_format(path,
                                                  binary=False)
     return word2vec

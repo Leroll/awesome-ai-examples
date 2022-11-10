@@ -1,22 +1,22 @@
 import pandas as pd
-import numpy as np
 import random
 from multiprocessing import Pool
 import sys
 import torch
-from utils import *
+from utils import time_cost
 
 
 class DataProcessor:
     """ reader 和 一些相关函数.
-    形成初步的数据集 train， dev， test
+    形成初步的数据集 train, dev, test
     """
 
     def __init__(self, logger=print):
         self.logger = logger
 
     @time_cost
-    def read_data(self, mode, name, path, sep, encoder='utf-8', has_index=False):
+    def read_data(self, mode, name, path, sep,
+                  encoder='utf-8', has_index=False):
         """
         读取数据,返回 list形式的数据
         处理如下类型数据集
@@ -28,7 +28,7 @@ class DataProcessor:
               readline
               pandas
         """
-        self.logger(f'-' * 42)
+        self.logger('-' * 42)
         self.logger(f'start to read: [{name}]...')
 
         if mode == 'readline':
@@ -51,7 +51,8 @@ class DataProcessor:
         return data
 
     @staticmethod
-    def _read_data_by_readline(path, sep, encoder='utf-8', has_index=False, has_label=True):
+    def _read_data_by_readline(path, sep, encoder='utf-8',
+                               has_index=False, has_label=True):
         data = []
         with open(path, encoding=encoder) as f:
             line = f.readline()
