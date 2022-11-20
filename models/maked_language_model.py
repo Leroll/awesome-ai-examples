@@ -3,7 +3,7 @@ import torch
 from torch import nn
 import numpy as np
 import random
-from utils import *
+from utils.utils import *
 
 
 class MaskedLanguageModel(nn.Module):

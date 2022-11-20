@@ -3,7 +3,7 @@ import random
 from multiprocessing import Pool
 import sys
 import torch
-from utils import time_cost
+from utils.utils import time_cost
 
 
 class DataProcessor:

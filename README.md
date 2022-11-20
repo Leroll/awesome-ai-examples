@@ -1,5 +1,9 @@
 # torch Models
-基于pytorch实现各种NLP相关的模型
+基于pytorch的:
+    各种模型实现
+    训练 pipeline
+    使用工具函数
+
 
 ## Models
 * sentence bert  

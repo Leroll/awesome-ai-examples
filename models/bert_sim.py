@@ -1,6 +1,6 @@
 import torch
 from torch import nn
-from utils import *
+from utils.utils import *
 
 
 class BertSim(nn.Module):
