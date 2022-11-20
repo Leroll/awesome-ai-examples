@@ -1,8 +1,8 @@
 # torch Models
-基于pytorch的:
-    各种模型实现
-    训练 pipeline
-    使用工具函数
+基于pytorch的:  
+* 各种模型实现  
+* 训练 pipeline  
+* 使用工具函数  
 
 
 ## Models

@@ -1,8 +1,7 @@
-
 from google.colab import drive
 import os
 
-def load_google_drive(path):
+def load_google_drive(path='/'):
     """path 为 my google drive 内部路径 
     """
 
