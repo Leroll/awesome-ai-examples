@@ -1,3 +1,6 @@
+"""
+针对形如 [q1, q2, label] 的数据进行处理
+"""
 import pandas as pd
 import random
 from multiprocessing import Pool

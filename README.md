@@ -4,6 +4,8 @@
 * 训练 pipeline  
 * 使用工具函数  
 
+其他各个模块位属于分离的解耦的组件，在tasks任务中选用各种组件形成完整的任务pipeline
+
 
 ## Models
 * sentence bert  
