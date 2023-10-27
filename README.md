@@ -6,6 +6,13 @@
 
 其他各个模块位属于分离的解耦的组件，在tasks任务中选用各种组件形成完整的任务pipeline
 
+# Update
+- 2023-10-27 新增图解算法模块，针对各式算法做一些可视化的理解。
+
+
+## illustration 图解算法
+- 位置编码 - Sinusoidal
+
 
 ## Models
 * sentence bert  
