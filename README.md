@@ -14,7 +14,7 @@
 
 
 ## 💫 illustration 
-- 图解位置编码 - Sinusoidal
+- 图解位置编码 - [Sinusoidal](illustation/位置编码-Sinusoidal.ipynb)
 
 
 ## 🌟 Models
