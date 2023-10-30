@@ -16,6 +16,9 @@
 ## 💫 illustration 
 - 图解位置编码 - [Sinusoidal](illustration/位置编码-Sinusoidal.ipynb)
 
+## ⚡️ Evalution
+- [C-Eval基准](https://cevalbenchmark.com/) 的[本地评测代码](evaluate/eval_ceval.py)
+
 
 ## 🌟 Models
 * sentence bert  
