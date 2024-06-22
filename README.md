@@ -1,53 +1,29 @@
+[Englist](README.md)｜[中文](README_ZH.md)
+
 <h1 align="center">
-  torch models
+  Awesome AI Examples
 </h1>
 
-基于pytorch的:  
-* 各种模型实现  
-* 训练 pipeline  
-* 使用工具函数  
+Welcome to the Awesome AI Examples repository! This repository is dedicated to providing high-quality and practical examples of artificial intelligence algorithms and applications, with a special focus on cutting-edge technologies like Large Language Models (LLM), GPT, Transformers, and more.
 
-其他各个模块位属于分离的解耦的组件，在tasks任务中选用各种组件形成完整的任务pipeline
+## 💫 Illustration 
+- Positional Encoding Illustration - [Sinusoidal](illustration/Position_Encoding-Sinusoidal.ipynb)
 
-## 🌈 Update
-- 2023-10-30 新增C-eval数据机的本地评测代码
-- 2023-10-27 新增图解算法模块，针对各式算法做一些可视化的理解。
+## ⚡️ Evaluation
+- Local evaluation code for the [C-Eval Benchmark](https://cevalbenchmark.com/). [eval_ceval](evaluate/eval_ceval.py)
 
+## 🔧 Utils
 
-## 💫 illustration 
-- 图解位置编码 - [Sinusoidal](illustration/位置编码-Sinusoidal.ipynb)
+### Memory Management
+- Clear memory function [clean_memory](utils/clean_memory.py)
+- Force release of NVIDIA VRAM [clean_nvidia_vram.sh](utils/clean_nvidia_vram.sh)
 
-## ⚡️ Evalution
-- [C-Eval基准](https://cevalbenchmark.com/) 的[本地评测代码](evaluate/eval_ceval.py)
+### File and Drive Loading
+- Load Google Drive in Colab [load_google_drive](utils/load_google_drive.py)
 
+### Training Setup
+- Set deterministic behavior in model training for reproducibility [set_deterministic](utils/set_deterministic.py)
 
-## 🌟 Models
-* sentence bert  
-  sentence bert的实现，用于相似度匹配的fine-tune  
-
-
-* bert sim  
-  基于bert的相似度匹配的 fine-tune 实现  
-
-
-* masked language model  
-  * 基础的基于bert的mlm的pytorch实现
-  * 用于pattern exploiting training，基于苏建林同学 [这篇文章](https://kexue.fm/archives/8213) 
-  * Masker  
-    mask 相关的数据处理类,把初步数据集加工为模型可用数据
-
-
-## 🥤 Data processing
-* Dataprocessor  
-  reader 和 一些相关函数。形成初步的数据集  
-
-
-* Preprocessor  
-  预处理相关
-
-  
-## 🔥 Train processing
-完成模型训练任务
-* 模型训练过程 
-* 兼容不同模型的 loss，acc 计算函数
-* 断点重新训练功能
+### Utility Functions
+- Decorator to calculate function runtime [time_cost](utils/time_cost.py)
+- Swap dictionary key-value pairs to get a value-key dictionary [reverse_dict](utils/reverse_dict.py)
