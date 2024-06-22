@@ -1,4 +1,4 @@
-[Englist](README_EN.md)｜[中文](README.md)
+[Englist](README.md)｜[中文](README_ZH.md)
 
 <h1 align="center">
   Awesome AI Examples
