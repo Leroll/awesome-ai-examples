@@ -1,10 +1,7 @@
 [Englist](README.md)｜[中文](README_ZH.md)
 
 <h1 align="center">
-<div align="center">
-  <img src="assets/temp_bar.png" alt="Alpaca Icon" style="width: 100%;"/>
-</div>
-  Awesome AI Examples
+  📜 Awesome AI Examples
 </h1>
 
 Welcome to the Awesome AI Examples repository! This repository is dedicated to providing high-quality and practical examples of artificial intelligence algorithms and applications, with a special focus on cutting-edge technologies like Large Language Models (LLM), GPT, Transformers, and more.
