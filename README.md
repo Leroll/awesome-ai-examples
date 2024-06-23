@@ -2,7 +2,7 @@
 
 <h1 align="center">
 <div align="center">
-  <img src="assets/temp_bar.png" alt="Alpaca Icon" width="420"/>
+  <img src="assets/temp_bar.png" alt="Alpaca Icon" style="width: 100%;"/>
 </div>
   Awesome AI Examples
 </h1>
