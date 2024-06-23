@@ -1,6 +1,9 @@
 [Englist](README.md)｜[中文](README_ZH.md)
 
 <h1 align="center">
+<div align="center">
+  <img src="assets/temp_bar.png" alt="Alpaca Icon" width="420"/>
+</div>
   Awesome AI Examples
 </h1>
 
