@@ -1,7 +1,7 @@
 [English](README.md)｜[中文](README_ZH.md)
 
 <h1 align="center">
-  📜 Awesome AI Examples
+  AI Examples
 </h1>
 
 Welcome to the Awesome AI Examples repository! This repository is dedicated to providing high-quality and practical examples of artificial intelligence algorithms and applications, with a special focus on cutting-edge technologies like Large Language Models (LLM), GPT, Transformers, and more.
