@@ -1,7 +1,7 @@
 [English](README.md)｜[中文](README_ZH.md)
 
 <h1 align="center">
-  📜 Awesome AI Examples
+  AI Examples
 </h1>
 
 欢迎来到 Awesome AI Examples 仓库！这个仓库致力于提供高质量和实用的人工智能算法和应用示例，特别是大语言模型（LLM）、GPT、Transformers等前沿技术的具体实现。
